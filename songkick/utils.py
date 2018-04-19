@@ -3,19 +3,18 @@ from datetime import timedelta
 
 
 def strToDate(string):
-    datetime.strptime(string, "%Y-%m-%d")
+    return datetime.strptime(string, "%Y-%m-%d")
 
 
 def dateToStr(date):
-    datetime.strftime(date, "%Y-%m-%d")
+    return datetime.strftime(date, "%Y-%m-%d")
 
 
-def twoDaysBefore(date):
-    date = datetime.date(date) - timedelta(days=2)
-    return date
+def dayBefore(strdate):
+    date = strToDate(strdate) - timedelta(days=1)
+    return dateToStr(date)
 
 
-def twoDaysAfter(date):
-    date = datetime.date(date) + timedelta(days=2)
-    return date
-
+def dayAfter(strdate):
+    date = strToDate(strdate) + timedelta(days=1)
+    return dateToStr(date)
