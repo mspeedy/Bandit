@@ -1,8 +1,9 @@
 import json
 import requests
 from songkick.config import SONGKICK_API_KEY
+from songkick.utils import *
 
-
+# http://api.songkick.com/api/3.0/search/locations.json?query=Boston&apikey=S8ZSPviCBeUKbmN0
 url = "http://api.songkick.com/api/3.0/"
 
 def results(obj):
@@ -34,11 +35,15 @@ def findMetroShows(metroId):
 def getDepaginatedEvents(requesturl, pagenum=1):
     """
     :param requesturl: The songkick API url to fetch data from
-    :param resulttype: The type of the songkick objects expected (e.g. 'event')
     :param pagenum: the page number, base case of 1, recursively increases to get all pages
-    :return: A list of songkick objects as python dictionaries
+    :return: A list of songkick events as python dictionaries
     """
-    resp = requests.get(requesturl, {"per_page": 50, "page": pagenum})
+    resp = requests.get(requesturl,
+                        {"per_page": 50,
+                         "page": pagenum,
+                         "min_date": dateToStr(datetime.today() + timedelta(days=30)),
+                         "max_date": dateToStr(datetime.today() + timedelta(days=120))})
+
     respPy = json.loads(resp.content)
     if respPy["resultsPage"]["totalEntries"] > pagenum * 50:
         return respPy["resultsPage"]["results"]["event"] + getDepaginatedEvents(requesturl, pagenum + 1)
@@ -49,15 +54,48 @@ def getDepaginatedEvents(requesturl, pagenum=1):
 def findShowArtists(shows):
     """
     :param shows: list of Event objects
-    :return: list of Artist IDs for all artists performing at @shows
+    :return: List of Dictionaries of {artist name, artist id, show date}
     """
     artists = []
     for show in shows:
-        for performance in show["performance"]:
-            artists.append((performance["displayName"], performance["artist"]["id"]))
+        if .06 > show["popularity"] > .009 and show["type"] == "concert":
+            for performance in show["performance"]:
+                artists.append({"displayName":performance["displayName"],
+                                "id":performance["artist"]["id"],
+                                "showDate":show["start"]["date"]})
 
     return artists
 
+
+def isFreeOn(artistid, date):
+    resp = requests.get(url + "artists/" + str(artistid) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
+                        {"per_page":50, "min_date": date, "max_date": date}
+                        )
+    if resp.status_code != 200:
+        # If API call fails, try one more time
+        resp = requests.get(url + "artists/" + str(artistid) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
+                            {"per_page": 50, "min_date": date, "max_date": date}
+                            )
+    return json.loads(resp.content)["resultsPage"]["totalEntries"] < 1
+
+
+def bookableArtistDates(artists):
+    """
+
+    :param artists: List of dictionaries of {artist name, artist id, show date}
+    :return: List of dictionaries of {artist name, artist id, unbooked date}
+    """
+    bookables = []
+    for artist in artists:
+        if isFreeOn(artist["id"], dayBefore(artist["showDate"])):
+            bookables.append({"displayName":artist["displayName"],
+                              "id":artist["id"],
+                              "availableDate":dayBefore(artist["showDate"])})
+        if isFreeOn(artist["id"], dayAfter(artist["showDate"])):
+            bookables.append({"displayName":artist["displayName"],
+                              "id":artist["id"],
+                              "availableDate":dayAfter(artist["showDate"])})
+    return bookables
 
 
 bostonId = findMetroAreaId("boston")
@@ -67,5 +105,10 @@ bostonShows = findMetroShows(bostonId)
 bostonArtists = findShowArtists(bostonShows)
 
 print(bostonArtists)
+
+bookableBoston = bookableArtistDates(bostonArtists)
+
+for bookable in bookableBoston:
+    print(bookable["displayName"] + ": " + bookable["availableDate"])
 
 
