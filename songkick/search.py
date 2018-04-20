@@ -58,7 +58,7 @@ def findShowArtists(shows):
     """
     artists = []
     for show in shows:
-        if .06 > show["popularity"] > .009 and show["type"] == "concert":
+        if .06 > show["popularity"] > .009 and show["type"] == "Concert":
             for performance in show["performance"]:
                 artists.append({"displayName":performance["displayName"],
                                 "id":performance["artist"]["id"],
