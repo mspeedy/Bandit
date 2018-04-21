@@ -55,6 +55,14 @@ def getDepaginatedEvents(requesturl, pagenum=1,
         return respPy["resultsPage"]["results"]["event"]
 
 
+def filterShowsByPopularity(shows, low=.007, high=.07):
+    filtered = []
+    for show in shows:
+        if high > show["popularity"] > low and show["type"] == "Concert":
+            filtered.append(show)
+    return filtered
+
+
 def findShowArtists(shows):
     """
     :param shows: list of Event objects
@@ -109,16 +117,42 @@ def bookableArtistDates(artists):
 
 
 bostonId = findMetroAreaId("boston")
-
+"""
 bostonShows = findMetroShows(bostonId)
 
-bostonArtists = findShowArtists(bostonShows)
+targetBostonShows = filterShows(bostonShows)
+
+bostonArtists = findShowArtists(targetBostonShows)
 
 print(bostonArtists)
 
 bookableBoston = bookableArtistDates(bostonArtists)
 
 for bookable in bookableBoston:
-    print(bookable["displayName"] + ": " + bookable["availableDate"])
+    print(bookable["displayName"] + ": " + dateToStr(bookable["availableDate"]))
+"""
+
+
+def freeArtistsByDate(metroId, date):
+    """
+    Find artists in the city and available on a specific date
+    :param metroId: the metro id of the city to search
+    :param date: datetime object of the date to search
+    :return: list of artists free on the given date
+    """
+
+    bookables = []
+    resp = getDepaginatedEvents(url + "metro_areas/" + str(metroId) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
+                                min_date=date - timedelta(days=1), max_date=date + timedelta(days=1))
+    artists = findShowArtists(resp)
+
+    for artist in artists:
+        if isFreeOn(artist["id"], date):
+            bookables.append(artist["displayName"])
+
+    return bookables
+
+
+print(freeArtistsByDate(bostonId, datetime(year=2018, month=6, day=29)))
 
 
