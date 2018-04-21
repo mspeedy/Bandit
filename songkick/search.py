@@ -55,7 +55,7 @@ def getDepaginatedEvents(requesturl, pagenum=1,
         return respPy["resultsPage"]["results"]["event"]
 
 
-def filterShowsByPopularity(shows, low=.007, high=.07):
+def filterShowsByPopularity(shows, low=.003, high=.075):
     filtered = []
     for show in shows:
         if high > show["popularity"] > low and show["type"] == "Concert":
@@ -78,7 +78,7 @@ def findShowArtists(shows):
     return artists
 
 
-def isFreeOn(artistid, date):
+def isFreeOn(artistId, date):
     """
 
     :param artistid: id of the artist to check
@@ -86,12 +86,12 @@ def isFreeOn(artistid, date):
     :return:
     """
     strDate = dateToStr(date)
-    resp = requests.get(url + "artists/" + str(artistid) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
+    resp = requests.get(url + "artists/" + str(artistId) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
                         {"per_page":50, "min_date": strDate, "max_date": strDate}
                         )
     if resp.status_code != 200:
         # If API call fails, try one more time (prevents some errors)
-        resp = requests.get(url + "artists/" + str(artistid) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
+        resp = requests.get(url + "artists/" + str(artistId) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
                             {"per_page": 50, "min_date": strDate, "max_date": strDate}
                             )
     return json.loads(resp.content)["resultsPage"]["totalEntries"] < 1
@@ -144,7 +144,9 @@ def freeArtistsByDate(metroId, date):
     bookables = []
     resp = getDepaginatedEvents(url + "metro_areas/" + str(metroId) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
                                 min_date=date - timedelta(days=1), max_date=date + timedelta(days=1))
+    resp = filterShowsByPopularity(resp)
     artists = findShowArtists(resp)
+
 
     for artist in artists:
         if isFreeOn(artist["id"], date):
