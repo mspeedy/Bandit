@@ -12,9 +12,9 @@ def dateToStr(date):
 
 def dayBefore(strdate):
     date = strToDate(strdate) - timedelta(days=1)
-    return dateToStr(date)
+    return date
 
 
 def dayAfter(strdate):
     date = strToDate(strdate) + timedelta(days=1)
-    return dateToStr(date)
+    return date

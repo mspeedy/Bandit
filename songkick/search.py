@@ -32,17 +32,21 @@ def findMetroShows(metroId):
     return getDepaginatedEvents(url + "metro_areas/" + str(metroId) + "/calendar.json?apikey=" + SONGKICK_API_KEY)
 
 
-def getDepaginatedEvents(requesturl, pagenum=1):
+def getDepaginatedEvents(requesturl, pagenum=1,
+                         min_date=datetime.today() + timedelta(days=30),
+                         max_date=datetime.today() + timedelta(days=120)):
     """
     :param requesturl: The songkick API url to fetch data from
     :param pagenum: the page number, base case of 1, recursively increases to get all pages
+    :param min_date: datetime object of earliest date to search
+    :param max_date: datetime object of latest date to search
     :return: A list of songkick events as python dictionaries
     """
     resp = requests.get(requesturl,
                         {"per_page": 50,
                          "page": pagenum,
-                         "min_date": dateToStr(datetime.today() + timedelta(days=30)),
-                         "max_date": dateToStr(datetime.today() + timedelta(days=120))})
+                         "min_date": dateToStr(min_date),
+                         "max_date": dateToStr(max_date)})
 
     respPy = json.loads(resp.content)
     if respPy["resultsPage"]["totalEntries"] > pagenum * 50:
@@ -58,23 +62,29 @@ def findShowArtists(shows):
     """
     artists = []
     for show in shows:
-        if .06 > show["popularity"] > .009 and show["type"] == "Concert":
-            for performance in show["performance"]:
-                artists.append({"displayName":performance["displayName"],
-                                "id":performance["artist"]["id"],
-                                "showDate":show["start"]["date"]})
+        for performance in show["performance"]:
+            artists.append({"displayName":performance["displayName"],
+                            "id":performance["artist"]["id"],
+                            "showDate":show["start"]["date"]})
 
     return artists
 
 
 def isFreeOn(artistid, date):
+    """
+
+    :param artistid: id of the artist to check
+    :param date: datetime of the date to check
+    :return:
+    """
+    strDate = dateToStr(date)
     resp = requests.get(url + "artists/" + str(artistid) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
-                        {"per_page":50, "min_date": date, "max_date": date}
+                        {"per_page":50, "min_date": strDate, "max_date": strDate}
                         )
     if resp.status_code != 200:
-        # If API call fails, try one more time
+        # If API call fails, try one more time (prevents some errors)
         resp = requests.get(url + "artists/" + str(artistid) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
-                            {"per_page": 50, "min_date": date, "max_date": date}
+                            {"per_page": 50, "min_date": strDate, "max_date": strDate}
                             )
     return json.loads(resp.content)["resultsPage"]["totalEntries"] < 1
 
