@@ -5,6 +5,7 @@ import spotipy
 import spotipy.util as util
 import spotify.lib.search as search
 import agency_scrapers.scraper as scrape
+from config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI
 
 
 def main():
@@ -14,7 +15,10 @@ def main():
 
     username = iniVals["SPOTIFY_USERNAME"]
     print("Getting token")
-    token = util.prompt_for_user_token(username, scope)
+    token = util.prompt_for_user_token(username, scope,
+                                       client_id=SPOTIPY_CLIENT_ID,
+                                       client_secret=SPOTIPY_CLIENT_SECRET,
+                                       redirect_uri=SPOTIPY_REDIRECT_URI)
     print("Got token: " + str(token))
 
     if token:

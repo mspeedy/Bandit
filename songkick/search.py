@@ -1,6 +1,6 @@
 import json
 import requests
-from songkick.config import SONGKICK_API_KEY
+from config import SONGKICK_API_KEY
 from songkick.utils import *
 
 # http://api.songkick.com/api/3.0/search/locations.json?query=Boston&apikey=S8ZSPviCBeUKbmN0
