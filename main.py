@@ -5,6 +5,7 @@ import spotipy
 import spotipy.util as util
 import spotify.lib.search as search
 import agency_scrapers.scraper as scrape
+from songkick.search import *
 from config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI
 
 
@@ -28,6 +29,8 @@ def main():
             response = input("Please enter a command (report):");
             if response == 'report':
                 makeReport(sp)
+            elif response == 'search':
+                search()
             elif response == 'q' or response == 'quit':
                 break;
             else:
@@ -88,7 +91,7 @@ def makeReportFileName(agency, roster):
 
 
 def displayHelp():
-    print('Welcome to Bandit! You can currently use the "report", "help", and "quit" functions')
+    print('Welcome to Bandit! You can currently use the "report", "help", search, and "quit" functions')
 
 
 # Creates a map of all values in the main ini file
@@ -100,6 +103,18 @@ def getIniVals():
             lineParts = line.split("=")
             valueMap[lineParts[0]] = lineParts[1]
     return valueMap
+
+
+def search():
+    metro = input('Enter the metro area you\'d like to search in: ')
+    metroId = findMetroAreaId(metro)
+    startDate = strToDate(input('Enter the earliest date you\'d like to search for (YYYY-MM-DD): '))
+    endDate = strToDate(input('Enter the latest date you\'d like to search for. ' +
+                    'This can be the same as the earliest. (YYYY-MM-DD):'))
+    print('Searching for bands available these days...')
+    artists = freeArtistsByDate(metroId, startDate, endDate)
+    for artist in artists:
+        print(dateToStr(artist["availableDate"]) + " | " + artist["displayName"])
 
 
 main()

@@ -47,15 +47,24 @@ def getDepaginatedEvents(requesturl, pagenum=1,
                          "page": pagenum,
                          "min_date": dateToStr(min_date),
                          "max_date": dateToStr(max_date)})
-
     respPy = json.loads(resp.content)
     if respPy["resultsPage"]["totalEntries"] > pagenum * 50:
-        return respPy["resultsPage"]["results"]["event"] + getDepaginatedEvents(requesturl, pagenum + 1)
+        return respPy["resultsPage"]["results"]["event"] + getDepaginatedEvents(requesturl,
+                                                                                pagenum=pagenum + 1,
+                                                                                min_date=min_date,
+                                                                                max_date=max_date)
     else:
         return respPy["resultsPage"]["results"]["event"]
 
 
 def filterShowsByPopularity(shows, low=.003, high=.075):
+    """
+    Filter out shows that are not within given bounds of popularity. Useful for finding bands within your price range.
+    :param shows: A list of Songkick Event objects
+    :param low: lower bound of popularity, between 0 and 1
+    :param high: upper bound of popularity, between 0 and 1
+    :return: A list of Songkick events within the given bounds of popularity
+    """
     filtered = []
     for show in shows:
         if high > show["popularity"] > low and show["type"] == "Concert":
@@ -87,12 +96,12 @@ def isFreeOn(artistId, date):
     """
     strDate = dateToStr(date)
     resp = requests.get(url + "artists/" + str(artistId) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
-                        {"per_page":50, "min_date": strDate, "max_date": strDate}
+                        {"per_page": 1, "min_date": strDate, "max_date": strDate}
                         )
     if resp.status_code != 200:
         # If API call fails, try one more time (prevents some errors)
         resp = requests.get(url + "artists/" + str(artistId) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
-                            {"per_page": 50, "min_date": strDate, "max_date": strDate}
+                            {"per_page": 1, "min_date": strDate, "max_date": strDate}
                             )
     return json.loads(resp.content)["resultsPage"]["totalEntries"] < 1
 
@@ -106,9 +115,9 @@ def bookableArtistDates(artists):
     bookables = []
     for artist in artists:
         if isFreeOn(artist["id"], dayBefore(artist["showDate"])):
-            bookables.append({"displayName":artist["displayName"],
-                              "id":artist["id"],
-                              "availableDate":dayBefore(artist["showDate"])})
+            bookables.append({"displayName": artist["displayName"],
+                              "id": artist["id"],
+                              "availableDate": dayBefore(artist["showDate"])})
         if isFreeOn(artist["id"], dayAfter(artist["showDate"])):
             bookables.append({"displayName":artist["displayName"],
                               "id":artist["id"],
@@ -133,7 +142,7 @@ for bookable in bookableBoston:
 """
 
 
-def freeArtistsByDate(metroId, date):
+def freeArtistsByDate(metroId, startDate, endDate):
     """
     Find artists in the city and available on a specific date
     :param metroId: the metro id of the city to search
@@ -141,20 +150,13 @@ def freeArtistsByDate(metroId, date):
     :return: list of artists free on the given date
     """
 
-    bookables = []
     resp = getDepaginatedEvents(url + "metro_areas/" + str(metroId) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
-                                min_date=date - timedelta(days=1), max_date=date + timedelta(days=1))
+                                min_date=startDate, max_date=endDate)
     resp = filterShowsByPopularity(resp)
     artists = findShowArtists(resp)
-
-
-    for artist in artists:
-        if isFreeOn(artist["id"], date):
-            bookables.append(artist["displayName"])
+    bookables = bookableArtistDates(artists)
 
     return bookables
 
-
-print(freeArtistsByDate(bostonId, datetime(year=2018, month=6, day=29)))
 
 
