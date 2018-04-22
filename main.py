@@ -26,13 +26,13 @@ def main():
         sp = spotipy.Spotify(auth=token);
         # results = search.searchByArtistName(sp, 'Laura Stevenson');
         while True:
-            response = input("Please enter a command (report):");
+            response = input("Please enter a command (report/search): ")
             if response == 'report':
                 makeReport(sp)
             elif response == 'search':
                 search(sp)
             elif response == 'q' or response == 'quit':
-                break;
+                break
             else:
                 displayHelp()
         # Pass sp into other functions for desired functionality
@@ -58,24 +58,6 @@ def makeReport(sp):
         followers = None
     reportFile.close()
     dbFile.close()
-
-
-def getSpotifyFollowers(sp, artist):
-    """
-
-    :param sp: spotify access token
-    :param artist: Artist name
-    :return: number of followers for the given artist
-    """
-    spotifyInfo = spsearch.searchByArtistName(sp, artist)
-    indexCount = 0
-    for artistInfo in spotifyInfo["artists"]["items"]:
-        if artistInfo["name"].lower() == artist.lower():
-            return str(spotifyInfo["artists"]["items"][indexCount]["followers"]["total"])
-        else:
-            indexCount += 1
-
-    return None
 
 
 def doScrape(agency, roster):
@@ -114,14 +96,15 @@ def search(sp):
     metroId = findMetroAreaId(metro)
     startDate = strToDate(input('Enter the earliest date you\'d like to search for (YYYY-MM-DD): '))
     endDate = strToDate(input('Enter the latest date you\'d like to search for. ' +
-                    'This can be the same as the earliest. (YYYY-MM-DD):'))
+                              'This can be the same as the previous. (YYYY-MM-DD): '))
     print('Searching for bands available these days...')
     artists = freeArtistsByDate(metroId, startDate, endDate)
 
     artists = sorted(artists, key=lambda x: x['availableDate'])
     for artist in artists:
-        followers = getSpotifyFollowers(sp, artist["displayName"])
-        print(dateToStr(artist["availableDate"]) + "\t| " + artist["displayName"] + "\t\t| " + str(followers) + " followers")
+        followers = spsearch.getSpotifyFollowers(sp, artist["displayName"])
+        print(dateToStr(artist["availableDate"]) + "\t| " + artist["displayName"] + "\t\t| " + str(
+            followers) + " followers")
 
 
 main()

@@ -7,22 +7,13 @@ from songkick.utils import *
 url = "http://api.songkick.com/api/3.0/"
 
 
-def results(obj):
-    """
-    Converts JSON object to a python library and depaginates
-    :param obj: A raw response from the songkick API
-    :return: the 'results' dictionary within a response, a list of dictionaries
-    """
-    return json.loads(obj.content)["resultsPage"]["results"]
-
-
 def findMetroAreaId(loc):
     """
     :param loc: string for a location, e.g. 'Boston'
     :return: The Metro Area ID for location loc.
     """
     location = requests.get(url + "search/locations.json?query=" + loc + "&apikey=" + SONGKICK_API_KEY)
-    return results(location)["location"][0]["metroArea"]["id"]
+    return json.loads(location.content)["resultsPage"]["results"]
 
 
 def findMetroShows(metroId):
@@ -124,24 +115,6 @@ def bookableArtistDates(artists):
                               "id":artist["id"],
                               "availableDate":dayAfter(artist["showDate"])})
     return bookables
-
-
-"""
-bostonId = findMetroAreaId("boston")
-
-bostonShows = findMetroShows(bostonId)
-
-targetBostonShows = filterShows(bostonShows)
-
-bostonArtists = findShowArtists(targetBostonShows)
-
-print(bostonArtists)
-
-bookableBoston = bookableArtistDates(bostonArtists)
-
-for bookable in bookableBoston:
-    print(bookable["displayName"] + ": " + dateToStr(bookable["availableDate"]))
-"""
 
 
 def freeArtistsByDate(metroId, startDate, endDate):
