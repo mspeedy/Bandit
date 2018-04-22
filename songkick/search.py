@@ -6,6 +6,7 @@ from songkick.utils import *
 # http://api.songkick.com/api/3.0/search/locations.json?query=Boston&apikey=S8ZSPviCBeUKbmN0
 url = "http://api.songkick.com/api/3.0/"
 
+
 def results(obj):
     """
     Converts JSON object to a python library and depaginates
@@ -125,8 +126,9 @@ def bookableArtistDates(artists):
     return bookables
 
 
-bostonId = findMetroAreaId("boston")
 """
+bostonId = findMetroAreaId("boston")
+
 bostonShows = findMetroShows(bostonId)
 
 targetBostonShows = filterShows(bostonShows)
@@ -147,7 +149,7 @@ def freeArtistsByDate(metroId, startDate, endDate):
     Find artists in the city and available on a specific date
     :param metroId: the metro id of the city to search
     :param date: datetime object of the date to search
-    :return: list of artists free on the given date
+    :return: list of artists free on the given date {artist name, artist id, unbooked date}
     """
 
     resp = getDepaginatedEvents(url + "metro_areas/" + str(metroId) + "/calendar.json?apikey=" + SONGKICK_API_KEY,

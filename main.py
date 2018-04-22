@@ -3,7 +3,7 @@ import os.path
 import datetime
 import spotipy
 import spotipy.util as util
-import spotify.lib.search as search
+import spotify.lib.search as spsearch
 import agency_scrapers.scraper as scrape
 from songkick.search import *
 from config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI
@@ -30,7 +30,7 @@ def main():
             if response == 'report':
                 makeReport(sp)
             elif response == 'search':
-                search()
+                search(sp)
             elif response == 'q' or response == 'quit':
                 break;
             else:
@@ -51,32 +51,36 @@ def makeReport(sp):
     delim = ','
     for artist in dbFile:
         artist = artist.strip()
-        spotifyInfo = search.searchByArtistName(sp, artist)
-        print(artist)
-        artistSearchItemIndex = -1;
-        indexCount = 0;
-        for artistInfo in spotifyInfo["artists"]["items"]:
-            if artistInfo["name"].lower() == artist.lower():
-                artistSearchItemIndex = indexCount
-                break
-            indexCount += 1
-        if artistSearchItemIndex >= 0:
-            reportFile.write('"' + artist + '"' + delim +
-                             + getSpotifyTotalFollowers(spotifyInfo, artistSearchItemIndex) +
-                             '\n')
+        if followers:
+            reportFile.write('"' + artist + '"' + delim + followers + '\n')
         else:
             reportFile.write('"No information found for: ' + artist + '",-1\n')
+        followers = None
     reportFile.close()
     dbFile.close()
+
+
+def getSpotifyFollowers(sp, artist):
+    """
+
+    :param sp: spotify access token
+    :param artist: Artist name
+    :return: number of followers for the given artist
+    """
+    spotifyInfo = spsearch.searchByArtistName(sp, artist)
+    indexCount = 0
+    for artistInfo in spotifyInfo["artists"]["items"]:
+        if artistInfo["name"].lower() == artist.lower():
+            return str(spotifyInfo["artists"]["items"][indexCount]["followers"]["total"])
+        else:
+            indexCount += 1
+
+    return None
 
 
 def doScrape(agency, roster):
     print('Scraping for ' + agency + '_' + roster + '...')
     scrape.scrapeAgency(agency, roster)
-
-
-def getSpotifyTotalFollowers(spotifyInfo, artistSearchItemIndex):
-    return str(spotifyInfo["artists"]["items"][artistSearchItemIndex]["followers"]["total"])
 
 
 def makeReportFileName(agency, roster):
@@ -105,7 +109,7 @@ def getIniVals():
     return valueMap
 
 
-def search():
+def search(sp):
     metro = input('Enter the metro area you\'d like to search in: ')
     metroId = findMetroAreaId(metro)
     startDate = strToDate(input('Enter the earliest date you\'d like to search for (YYYY-MM-DD): '))
@@ -113,8 +117,11 @@ def search():
                     'This can be the same as the earliest. (YYYY-MM-DD):'))
     print('Searching for bands available these days...')
     artists = freeArtistsByDate(metroId, startDate, endDate)
+
+    artists = sorted(artists, key=lambda x: x['availableDate'])
     for artist in artists:
-        print(dateToStr(artist["availableDate"]) + " | " + artist["displayName"])
+        followers = getSpotifyFollowers(sp, artist["displayName"])
+        print(dateToStr(artist["availableDate"]) + "\t| " + artist["displayName"] + "\t\t| " + str(followers) + " followers")
 
 
 main()
