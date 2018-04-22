@@ -24,10 +24,11 @@ def main():
     print("Got token: " + str(token))
 
     if token:
-        sp = spotipy.Spotify(auth=token);
+        sp = spotipy.Spotify(auth=token)
+        displayHelp()
         # results = search.searchByArtistName(sp, 'Laura Stevenson');
         while True:
-            response = input("Please enter a command (report/search): ")
+            response = input("Please enter a command (search): ")
             if response == 'report':
                 makeReport(sp)
             elif response == 'search':
@@ -109,9 +110,9 @@ def search(sp):
     print(tabulate(artists,
                    headers=({"displayName": "Artist",
                              "id": "Songkick ID",
-                             "availableDate": "Date",
-                             "followers": "Spotify Followers" }),
-                   tablefmt='orgtbl') )
+                             "availableDate": "Available On",
+                             "followers": "Spotify Followers"}),
+                   tablefmt='fancy_grid'))
 
 
 main()
