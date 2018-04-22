@@ -11,10 +11,10 @@ def dateToStr(date):
 
 
 def dayBefore(strdate):
-    date = strToDate(strdate) - timedelta(days=1)
+    date = datetime.date(strToDate(strdate) - timedelta(days=1))
     return date
 
 
 def dayAfter(strdate):
-    date = strToDate(strdate) + timedelta(days=1)
+    date = datetime.date(strToDate(strdate) + timedelta(days=1))
     return date

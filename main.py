@@ -1,6 +1,7 @@
 import sys
 import os.path
 import datetime
+from tabulate import tabulate
 import spotipy
 import spotipy.util as util
 import spotify.lib.search as spsearch
@@ -77,7 +78,7 @@ def makeReportFileName(agency, roster):
 
 
 def displayHelp():
-    print('Welcome to Bandit! You can currently use the "report", "help", search, and "quit" functions')
+    print('Welcome to Bandit! You can currently use the "report", "help", "search", and "quit" functions')
 
 
 # Creates a map of all values in the main ini file
@@ -101,10 +102,16 @@ def search(sp):
     artists = freeArtistsByDate(metroId, startDate, endDate)
 
     artists = sorted(artists, key=lambda x: x['availableDate'])
+
     for artist in artists:
-        followers = spsearch.getSpotifyFollowers(sp, artist["displayName"])
-        print(dateToStr(artist["availableDate"]) + "\t| " + artist["displayName"] + "\t\t| " + str(
-            followers) + " followers")
+        artist["followers"] = spsearch.getSpotifyFollowers(sp, artist["displayName"])
+
+    print(tabulate(artists,
+                   headers=({"displayName": "Artist",
+                             "id": "Songkick ID",
+                             "availableDate": "Date",
+                             "followers": "Spotify Followers" }),
+                   tablefmt='orgtbl') )
 
 
 main()

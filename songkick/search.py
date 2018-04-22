@@ -2,6 +2,7 @@ import json
 import requests
 from config import SONGKICK_API_KEY
 from songkick.utils import *
+from spotify.lib.search import getSpotifyFollowers
 
 # http://api.songkick.com/api/3.0/search/locations.json?query=Boston&apikey=S8ZSPviCBeUKbmN0
 url = "http://api.songkick.com/api/3.0/"
@@ -13,7 +14,7 @@ def findMetroAreaId(loc):
     :return: The Metro Area ID for location loc.
     """
     location = requests.get(url + "search/locations.json?query=" + loc + "&apikey=" + SONGKICK_API_KEY)
-    return json.loads(location.content)["resultsPage"]["results"]
+    return json.loads(location.content)["resultsPage"]["results"]["location"][0]["metroArea"]["id"]
 
 
 def findMetroShows(metroId):
@@ -49,6 +50,7 @@ def getDepaginatedEvents(requesturl, pagenum=1,
         return respPy["resultsPage"]["results"]["event"]
 
 
+# Not accurate way to filter popular artists, because shows have opening acts and date impacts event popularity
 def filterShowsByPopularity(shows, low=.003, high=.075):
     """
     Filter out shows that are not within given bounds of popularity. Useful for finding bands within your price range.
