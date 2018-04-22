@@ -100,7 +100,7 @@ def isFreeOn(artistId, date):
     return json.loads(resp.content)["resultsPage"]["totalEntries"] < 1
 
 
-def bookableArtistDates(artists):
+def bookableArtistDates(artists, startDate, endDate):
     """
 
     :param artists: List of dictionaries of {artist name, artist id, show date}
@@ -108,14 +108,16 @@ def bookableArtistDates(artists):
     """
     bookables = []
     for artist in artists:
-        if isFreeOn(artist["id"], dayBefore(artist["showDate"])):
+        day_before = dayBefore(artist["showDate"])
+        day_after = dayAfter(artist["showDate"])
+        if day_before >= startDate and isFreeOn(artist["id"], day_before):
             bookables.append({"displayName": artist["displayName"],
                               "id": artist["id"],
-                              "availableDate": dayBefore(artist["showDate"])})
-        if isFreeOn(artist["id"], dayAfter(artist["showDate"])):
-            bookables.append({"displayName":artist["displayName"],
-                              "id":artist["id"],
-                              "availableDate":dayAfter(artist["showDate"])})
+                              "availableDate": day_before})
+        if day_after <= endDate and isFreeOn(artist["id"], day_after):
+            bookables.append({"displayName": artist["displayName"],
+                              "id": artist["id"],
+                              "availableDate": day_after})
     return bookables
 
 
@@ -128,10 +130,10 @@ def freeArtistsByDate(metroId, startDate, endDate):
     """
 
     resp = getDepaginatedEvents(url + "metro_areas/" + str(metroId) + "/calendar.json?apikey=" + SONGKICK_API_KEY,
-                                min_date=startDate, max_date=endDate)
+                                min_date=startDate - timedelta(days=1), max_date=endDate + timedelta(days=1))
     resp = filterShowsByPopularity(resp)
     artists = findShowArtists(resp)
-    bookables = bookableArtistDates(artists)
+    bookables = bookableArtistDates(artists, startDate, endDate)
 
     return bookables
 

@@ -3,7 +3,7 @@ from datetime import timedelta
 
 
 def strToDate(string):
-    return datetime.strptime(string, "%Y-%m-%d")
+    return datetime.date(datetime.strptime(string, "%Y-%m-%d"))
 
 
 def dateToStr(date):
@@ -11,10 +11,10 @@ def dateToStr(date):
 
 
 def dayBefore(strdate):
-    date = datetime.date(strToDate(strdate) - timedelta(days=1))
+    date = strToDate(strdate) - timedelta(days=1)
     return date
 
 
 def dayAfter(strdate):
-    date = datetime.date(strToDate(strdate) + timedelta(days=1))
+    date = strToDate(strdate) + timedelta(days=1)
     return date
