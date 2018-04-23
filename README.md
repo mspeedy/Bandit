@@ -51,3 +51,7 @@ your venue!
 3. Enter 'agency' (check AgencyRoster_todo for finished rosters)
 4. Enter 'roster' (usually 'full' but currently uta also has a 'usa' one)
 
+## Example Search Output
+
+![](exampleoutput.png?raw=true)
+

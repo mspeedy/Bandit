@@ -51,7 +51,7 @@ def getDepaginatedEvents(requesturl, pagenum=1,
 
 
 # Not accurate way to filter popular artists, because shows have opening acts and date impacts event popularity
-def filterShowsByPopularity(shows, low=.003, high=.075):
+def filterShowsByPopularity(shows, low=.001, high=.1):
     """
     Filter out shows that are not within given bounds of popularity. Useful for finding bands within your price range.
     :param shows: A list of Songkick Event objects

@@ -102,16 +102,19 @@ def search(sp):
     print('Searching for bands available these days...')
     artists = freeArtistsByDate(metroId, startDate, endDate)
 
-    artists = sorted(artists, key=lambda x: x['availableDate'])
-
     for artist in artists:
-        artist["followers"] = spsearch.getSpotifyFollowers(sp, artist["displayName"])
+        spartist = spsearch.getArtistByName(sp, artist["displayName"])
+        artist["followers"] = spsearch.getSpotifyFollowers(spartist)
+        artist["genre"] = spsearch.getSpotifyGenre(spartist)
+
+    artists = sorted(artists, key=lambda x: int(x['followers']))
 
     print(tabulate(artists,
                    headers=({"displayName": "Artist",
                              "id": "Songkick ID",
                              "availableDate": "Available On",
-                             "followers": "Spotify Followers"}),
+                             "followers": "Spotify Followers",
+                             "genre": "genre"}),
                    tablefmt='fancy_grid'))
 
 
