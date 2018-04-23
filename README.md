@@ -25,9 +25,13 @@ your venue!
 1) Install the latest version of Python (https://www.python.org/)
 2) In terminal, run 'pip install sys' (you may not have to do this), 'pip install spotipy', 'pip install lxml'
 3) Add file config.py with the following lines:
+
    SPOTIPY_CLIENT_ID      = Spotify API Client_ID
+   
    SPOTIPY_CLIENT_SECRET  = Spotify API Client_Secret
+   
    SPOTIPY_REDIRECT_URI   = Spotify API Redirect_URI
+   
    SONGKICK_API_KEY       = Songkick API Key
 
 4) Copy this repo to your machine or download as a zip and unzip
